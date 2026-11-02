@@ -126,3 +126,4 @@ with st.expander("About this project"):
     )
     st.write(f"Training rows used: {len(data):,}")
     st.write("Target variable: Price")
+
