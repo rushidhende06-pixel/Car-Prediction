@@ -3,11 +3,13 @@ The application lets a user enter details such as manufacturer, model,
 production year, fuel type, engine size, mileage, cylinders, airbags,
 and other car attributes. It then prepares the input data and predicts
 an estimated car price.
+
 - Problem type: Supervised Machine Learning -- Regression
 - Target variable: Price
 - Model: RandomForestRegressor
 - Application: Streamlit
 - Dataset: Used Car Price Prediction dataset
+
 Features
 - Interactive car-details form
 - Estimated price displayed after submitting the form
@@ -17,9 +19,9 @@ Features
 - Scaling for numeric features
 - Model training cached by Streamlit to avoid retraining on every
   interaction
+  
 Dataset
 The app loads the CSV dataset from:
-
 car_price_prediction.csv
 
 The target column is Price. The app derives the Engine, Turbo, and
@@ -32,6 +34,7 @@ Car-Price-Prediction/
 ├── app.py
 ├── requirements.txt
 └── README.md
+
 Run locally
 1. Clone the repository
 git clone https://github.com/rushidhende06-pixel/Car-Price-Prediction.git
@@ -51,6 +54,7 @@ pip install -r requirements.txt
 streamlit run app.py
 The app will open in your browser. If it does not, open the local URL
 shown in the terminal, usually http://localhost:8501.
+
 Deploy on Streamlit Community Cloud
 1. Push app.py, requirements.txt, and README.md to your GitHub
    repository.
@@ -60,6 +64,7 @@ Deploy on Streamlit Community Cloud
 5. Set the main file path to app.py.
 6. Choose Python 3.12 in Advanced settings.
 7. Deploy the app.
+
 Important notes
 - The app trains a Random Forest model from the dataset when it first
   loads. Streamlit caches the trained model for subsequent reruns.
@@ -75,6 +80,7 @@ Important notes
   not describe it as the Linear Regression model from a separate
   notebook unless the app is updated to load and use that exact
   trained model.
+  
 Technologies used
 - Python
 - Streamlit
@@ -82,5 +88,6 @@ Technologies used
 - NumPy
 - Scikit-learn
 - Random Forest Regression
+
 Author
 Rushikesh Dhende
