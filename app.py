@@ -1,3 +1,35 @@
+manufacturers = sorted(data["Manufacturer"].dropna().astype(str).unique())
+categories = sorted(data["Category"].dropna().astype(str).unique())
+leather_options = sorted(
+    data["Leather interior"].dropna().astype(str).unique()
+)
+fuel_options = sorted(data["Fuel type"].dropna().astype(str).unique())
+colors = sorted(data["Color"].dropna().astype(str).unique())
+
+# A dependent model dropdown is not required; all known models are available.
+models = sorted(data["Model"].dropna().astype(str).unique())
+
+min_year = int(data["Prod. year"].dropna().min())
+max_year = int(data["Prod. year"].dropna().max())
+min_cyl = int(max(1, np.floor(data["Cylinders"].dropna().min())))
+max_cyl = int(np.ceil(data["Cylinders"].dropna().max()))
+min_airbags = int(max(0, np.floor(data["Airbags"].dropna().min())))
+max_airbags = int(np.ceil(data["Airbags"].dropna().max()))
+
+with st.form("car_details_form"):
+    st.subheader("Car information")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        manufacturer = st.selectbox("Manufacturer", manufacturers)
+        car_model = st.selectbox("Model", models)
+        category = st.selectbox("Category", categories)
+        production_year = st.number_input(
+            "Production year",
+            min_value=min_year,
+            max_value=max_year,
+            value=min(max_year, 2015),
             step=1
         )
 
@@ -94,4 +126,3 @@ with st.expander("About this project"):
     )
     st.write(f"Training rows used: {len(data):,}")
     st.write("Target variable: Price")
-    st.write("Model: RandomForestRegressor")
