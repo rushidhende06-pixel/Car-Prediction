@@ -3,120 +3,175 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-
+# ---------------------------------
+# 1. Page Configuration
+# ---------------------------------
 st.set_page_config(
-    page_title="Machine Failure Prediction",
-    page_icon="⚙️",
+    page_title="Car Price Prediction",
+    page_icon="🚗",
     layout="wide"
 )
 
-
+# ---------------------------------
+# 2. Load Saved ML Model
+# ---------------------------------
 @st.cache_resource
 def load_model():
-    model = joblib.load("gradient_boosting_model.joblib")
-    pipeline = joblib.load("preprocessing_pipeline.joblib")
-    return model, pipeline
+    model = joblib.load("car_price_model.joblib")
+    preprocessor = joblib.load("preprocessor.joblib")
+    return model, preprocessor
+
 
 try:
-    model, pipeline = load_model()
+    model, preprocessor = load_model()
 except Exception as e:
-    st.error(f"Error loading model files: {e}")
+    st.error(f"Unable to load model files: {e}")
     st.stop()
 
 
-st.title("⚙️ Machine Failure Prediction")
+# Get the exact columns used during preprocessing
+if hasattr(preprocessor, "feature_names_in_"):
+    expected_columns = list(preprocessor.feature_names_in_)
+else:
+    st.error(
+        "The preprocessor does not expose feature_names_in_. "
+        "Please check how it was trained."
+    )
+    st.stop()
+
+
+# ---------------------------------
+# 3. Application Header
+# ---------------------------------
+st.title("🚗 Car Price Prediction")
 st.write(
-    "Enter machine operating parameters to predict "
-    "whether the machine is likely to fail."
+    "Enter the details of a used car to estimate its selling price "
+    "using a Machine Learning model."
 )
 
 st.divider()
 
 
-with st.form("prediction_form"):
+# ---------------------------------
+# 4. Input Field Configuration
+# ---------------------------------
+numeric_features = {
+    "Levy": (0.0, 0.0, 100000.0, 100.0),
+    "Prod. year": (2015, 1980, 2026, 1),
+    "Mileage": (50000.0, 0.0, 1000000.0, 1000.0),
+    "Cylinders": (4.0, 1.0, 16.0, 1.0),
+    "Airbags": (4, 0, 20, 1),
+    "Engine": (2.0, 0.1, 10.0, 0.1),
+    "Age": (5, 0, 60, 1),
+    "Turbo": (0, 0, 1, 1)
+}
 
-    st.subheader("Machine Parameters")
+categorical_options = {
+    "Leather interior": ["Yes", "No"],
+    "Fuel type": [
+        "Petrol", "Diesel", "Hybrid", "LPG",
+        "CNG", "Plug-in Hybrid", "Hydrogen"
+    ],
+    "Category": [
+        "Sedan", "Jeep", "Hatchback", "Universal",
+        "Coupe", "Minivan", "Goods wagon", "Pickup"
+    ],
+    "Gear box type": [
+        "Automatic", "Manual", "Tiptronic", "Variator"
+    ],
+    "Drive wheels": ["Front", "Rear", "4x4"],
+    "Wheel": ["Left wheel", "Right-hand drive"]
+}
+
+
+def create_input(feature):
+    """Create an input widget based on the expected feature."""
+
+    if feature in numeric_features:
+        default, minimum, maximum, step = numeric_features[feature]
+
+        return st.number_input(
+            feature,
+            min_value=minimum,
+            max_value=maximum,
+            value=default,
+            step=step
+        )
+
+    if feature in categorical_options:
+        return st.selectbox(
+            feature,
+            categorical_options[feature]
+        )
+
+    if feature == "Manufacturer":
+        return st.text_input(feature, value="Toyota")
+
+    if feature == "Model":
+        return st.text_input(feature, value="Corolla")
+
+    if feature == "Color":
+        return st.text_input(feature, value="Black")
+
+    if feature == "Engine volume":
+        return st.text_input(feature, value="2.0 Turbo")
+
+    if feature == "Doors":
+        return st.text_input(feature, value="04-May")
+
+    return st.text_input(feature, value="")
+
+
+# ---------------------------------
+# 5. Car Details Form
+# ---------------------------------
+st.subheader("Enter Car Details")
+
+with st.form("car_prediction_form"):
 
     col1, col2 = st.columns(2)
 
-    with col1:
-        machine_type = st.selectbox(
-            "Machine Type",
-            ["L", "M", "H"]
-        )
+    input_values = {}
 
-        air_temp = st.number_input(
-            "Air Temperature (K)",
-            min_value=250.0,
-            max_value=350.0,
-            value=300.0
-        )
+    for index, feature in enumerate(expected_columns):
+        with col1 if index % 2 == 0 else col2:
+            input_values[feature] = create_input(feature)
 
-        process_temp = st.number_input(
-            "Process Temperature (K)",
-            min_value=250.0,
-            max_value=400.0,
-            value=310.0
-        )
-
-    with col2:
-        rot_speed = st.number_input(
-            "Rotational Speed (rpm)",
-            min_value=0,
-            max_value=10000,
-            value=1500
-        )
-
-        torque = st.number_input(
-            "Torque (Nm)",
-            min_value=0.0,
-            max_value=200.0,
-            value=40.0
-        )
-
-        tool_wear = st.number_input(
-            "Tool Wear (min)",
-            min_value=0,
-            max_value=500,
-            value=100
-        )
-
-    submit = st.form_submit_button(
-        "Predict Machine Failure",
+    submitted = st.form_submit_button(
+        "Predict Car Price 🚘",
         use_container_width=True
     )
 
 
-if submit:
+# ---------------------------------
+# 6. Prediction
+# ---------------------------------
+if submitted:
 
-    input_data = pd.DataFrame([{
-        "Type": machine_type,
-        "Air temperature [K]": air_temp,
-        "Process temperature [K]": process_temp,
-        "Rotational speed [rpm]": rot_speed,
-        "Torque [Nm]": torque,
-        "Tool wear [min]": tool_wear
-    }])
+    input_data = pd.DataFrame(
+        [input_values],
+        columns=expected_columns
+    )
 
     try:
-        transformed_data = pipeline.transform(input_data)
+        transformed_data = preprocessor.transform(input_data)
+
         prediction = model.predict(transformed_data)[0]
 
         st.divider()
         st.subheader("Prediction Result")
 
-        if prediction == 1:
-            st.error("⚠️ Machine Failure Predicted")
-            st.warning(
-                "The model predicts a potential machine failure. "
-                "Please inspect the machine."
-            )
-        else:
-            st.success("✅ No Machine Failure Predicted")
-            st.info(
-                "The model predicts that the machine is operating "
-                "without a predicted failure."
-            )
+        st.success("Car price predicted successfully!")
+
+        st.metric(
+            label="Estimated Car Price",
+            value=f"₹ {prediction:,.2f}"
+        )
+
+        st.caption(
+            "This is a machine learning estimate, not a guaranteed "
+            "market selling price."
+        )
 
     except Exception as e:
-        st.error(f"Prediction error: {e}")
+        st.error(f"Prediction failed: {e}")
