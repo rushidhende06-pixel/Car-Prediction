@@ -3,18 +3,14 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# -------------------------------
-# 1. Page Configuration
-# -------------------------------
+
 st.set_page_config(
     page_title="Machine Failure Prediction",
     page_icon="⚙️",
     layout="wide"
 )
 
-# -------------------------------
-# 2. Load Model and Pipeline
-# -------------------------------
+
 @st.cache_resource
 def load_model():
     model = joblib.load("gradient_boosting_model.joblib")
@@ -27,9 +23,7 @@ except Exception as e:
     st.error(f"Error loading model files: {e}")
     st.stop()
 
-# -------------------------------
-# 3. Application Title
-# -------------------------------
+
 st.title("⚙️ Machine Failure Prediction")
 st.write(
     "Enter machine operating parameters to predict "
@@ -38,9 +32,7 @@ st.write(
 
 st.divider()
 
-# -------------------------------
-# 4. Input Form
-# -------------------------------
+
 with st.form("prediction_form"):
 
     st.subheader("Machine Parameters")
@@ -94,9 +86,7 @@ with st.form("prediction_form"):
         use_container_width=True
     )
 
-# -------------------------------
-# 5. Prediction
-# -------------------------------
+
 if submit:
 
     input_data = pd.DataFrame([{
