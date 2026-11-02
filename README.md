@@ -89,5 +89,6 @@ Technologies used
 - Scikit-learn
 - Random Forest Regression
 
-Author
+Author::
+
 Rushikesh Dhende
